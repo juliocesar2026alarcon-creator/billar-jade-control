@@ -225,3 +225,20 @@ app.js?v=20260215a</script>
   <script src="app.js?v=20260215a"></script>
 </body>
 </html>
+<footer class="app-footer">
+    <small>Versión con productos — sin backend (persistencia local). <span id="lblFecha"></span></small>
+  </footer>
+
+  <!-- TEST inline para verificar que el navegador ejecuta JS -->
+  <script>
+    console.log('INLINE OK');
+    const grid = document.getElementById('mesasGrid');
+    if (grid) {
+      grid.insertAdjacentHTML('beforeend', '<div style="color:#a7f3d0;padding:8px">JS INLINE OK</div>');
+    }
+  </script>
+
+  <!-- Carga CORRECTA del script principal (ahora con <script src="..."></script>) -->
+  <script src="app.js?v=20260215a"></script>
+</body>
+</html>
