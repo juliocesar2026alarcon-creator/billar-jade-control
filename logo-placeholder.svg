@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="g" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#22c55e"/>
+      <stop offset="100%" stop-color="#16a34a"/>
+    </linearGradient>
+  </defs>
+  <rect rx="16" ry="16" x="8" y="8" width="112" height="112" fill="url(#g)"/>
+  <circle cx="64" cy="64" r="28" fill="#111"/>
+  <circle cx="64" cy="64" r="12" fill="#e5e7eb"/>
+  <text x="64" y="116" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#e5e7eb">BILLAR JADE</text>
+</svg>
