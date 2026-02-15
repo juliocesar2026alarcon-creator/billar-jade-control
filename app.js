@@ -1,3 +1,4 @@
+alert('BILLAR JADE: JS cargado');
 // ======= Estado, configuración y catálogo =======
 const DEFAULT_CONFIG = {
   tarifaPorHora: 15.0,
