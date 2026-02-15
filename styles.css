@@ -1,6 +1,6 @@
-/* === Tema / base === */
+/* === Tema === */
 :root{
-  --color:#16a34a;
+  --color:#16a34a; /* verde por defecto, configurable */
   --bg:#0b1220;
   --panel:#0f172a;
   --card:#111827;
@@ -15,7 +15,7 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:
 .app-header{display:flex;flex-direction:column;gap:8px;padding:10px 14px;background:var(--panel);border-bottom:1px solid var(--border)}
 .brand{display:flex;align-items:center;gap:10px}
 .logo{width:40px;height:40px}
-.titles h1{margin:0;font-size:20px}
+.titles h1{margin:0;font-size:20px;letter-spacing:0.5px}
 .subtitle{color:var(--muted);font-size:12px}
 .toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .inline select{margin-left:6px}
@@ -26,7 +26,6 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:
 .tarifa-values{display:flex;gap:6px}
 .tarifa-values span{background:#0c1a2d;border:1px solid #18253a;border-radius:6px;padding:4px 6px;font-size:12px}
 .actions{display:flex;gap:6px}
-.clock{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:2px}
 
 .btn{background:var(--color);border:none;color:white;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600}
 .btn:hover{filter:brightness(1.05)}
@@ -36,7 +35,7 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:
 .btn.danger{background:var(--danger)}
 
 main{padding:16px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
 .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px}
 .card-header{display:flex;align-items:center;justify-content:space-between}
 .badge{border-radius:999px;padding:3px 8px;font-size:12px}
@@ -46,10 +45,10 @@ main{padding:16px}
 .controls-row{display:flex;gap:8px;flex-wrap:wrap}
 .controls-row .btn{flex:1}
 
-/* Modales y tablas */
+/* Modales */
 dialog{background:transparent;border:none}
-.modal-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;min-width:320px;max-width:980px}
-.modal-card.wide{max-width:1100px}
+.modal-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;min-width:320px;max-width:760px}
+.modal-card.wide{max-width:980px}
 .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:12px 0}
 .table-wrap{overflow:auto;max-height:60vh;border:1px solid var(--border);border-radius:8px}
 .table{width:100%;border-collapse:collapse}
@@ -73,14 +72,3 @@ dialog{background:transparent;border:none}
   .no-print, header, footer, dialog:not([open]){display:none !important}
   #ticketModal[open] .ticket-area{width:80mm}
 }
-
-/* Productos */
-.consumo-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
-.productos-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px}
-.prod-item{border:1px solid #263347;background:#0b1527;border-radius:8px;padding:8px;display:flex;align-items:center;justify-content:space-between;gap:6px}
-.prod-name{font-size:13px}
-.prod-price{font-weight:700;color:#a7f3d0}
-.qty-box{display:flex;align-items:center;gap:6px}
-.qty-btn{background:#0c1a2d;border:1px solid #22334a;color:#e5e7eb;border-radius:6px;padding:4px 8px;cursor:pointer}
-.qty{min-width:24px;text-align:center}
-``

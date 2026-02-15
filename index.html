@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BILLAR JADE — Control de Mesas + Productos</title>
+  <title>BILLAR JADE — Control de Mesas</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -12,7 +12,7 @@
       <img src="logo-placeholder.svg" alt="Logo" class="logo"/>
       <div class="titles">
         <h1>Billar Jade</h1>
-        <span class="subtitle">Control de Mesas + Productos</span>
+        <span class="subtitle">Control de Mesas</span>
       </div>
     </div>
 
@@ -43,12 +43,6 @@
           <span id="lblMinimo">—</span>
         </div>
         <button id="btnConfig" class="btn outline" title="Configurar (solo admin)">⚙️ Configurar</button>
-        <button id="btnProductos" class="btn outline" title="Gestionar productos (solo admin)">🛒 Productos</button>
-      </div>
-
-      <div class="clock">
-        <span id="liveClock">--:--:--</span>
-        <small id="liveDate" class="muted"></small>
       </div>
 
       <div class="actions">
@@ -93,48 +87,6 @@
       </div>
       <p class="muted">Los cajeros solo pueden <strong>ver</strong> las tarifas; solo un administrador puede cambiarlas.</p>
     </form>
-  </dialog>
-
-  <!-- Modal Productos (Admin) -->
-  <dialog id="productosModal">
-    <div class="modal-card wide">
-      <h3>🛒 Catálogo de productos</h3>
-      <div class="row gap">
-        <input id="prodNombre" placeholder="Nombre del producto" />
-        <input id="prodPrecio" type="number" step="0.01" min="0" placeholder="Precio (Bs)" />
-        <button id="btnAgregarProducto" class="btn">Agregar</button>
-      </div>
-      <div id="tablaProductos" class="table-wrap" style="margin-top:10px"></div>
-      <div class="row end gap no-print" style="margin-top:10px">
-        <button id="btnCerrarProductos" class="btn">Cerrar</button>
-      </div>
-    </div>
-  </dialog>
-
-  <!-- Modal Consumo por mesa -->
-  <dialog id="consumoModal">
-    <div class="modal-card wide">
-      <h3>🍺 Consumo — <span id="consumoMesaTitulo"></span></h3>
-      <div class="row gap">
-        <input id="buscarProducto" placeholder="Buscar producto..." />
-      </div>
-      <div class="consumo-grid">
-        <div>
-          <h4>Productos</h4>
-          <div id="listaProductos" class="productos-list"></div>
-        </div>
-        <div>
-          <h4>Detalle de consumo</h4>
-          <div id="detalleConsumo" class="table-wrap"></div>
-          <div class="row end gap" style="margin-top:8px">
-            <strong>Subtotal productos: <span id="subtotalProductos">0.00</span> Bs</strong>
-          </div>
-          <div class="row end gap no-print" style="margin-top:8px">
-            <button id="btnCerrarConsumo" class="btn outline">Cerrar</button>
-          </div>
-        </div>
-      </div>
-    </div>
   </dialog>
 
   <!-- Modal Ticket -->
@@ -194,69 +146,9 @@
   </dialog>
 
   <footer class="app-footer">
-    <small>Versión con productos — sin backend (persistencia local). <span id="lblFecha"></span></small>
+    <small>Versión avanzada — sin backend (persistencia local). Fecha: <span id="lblFecha"></span></small>
   </footer>
 
   <script src="app.js"></script>
 </body>
 </html>
-
-<script>
-  console.log('INLINE OK');
-  const grid = document.getElementById('mesasGrid');
-  if (grid) grid.innerHTML = '<div style="color:#a7f3d0;padding:8px">JS INLINE OK</div>';
-</script>
-
-app.js?v=20260215a</script>
-<footer class="app-footer">
-    <small>Versión con productos — sin backend (persistencia local). <span id="lblFecha"></span></small>
-  </footer>
-
-  <!-- TEST inline para confirmar que el navegador ejecuta JS -->
-  <script>
-    console.log('INLINE OK');
-    const grid = document.getElementById('mesasGrid');
-    if (grid) {
-      grid.insertAdjacentHTML('beforeend', '<div style="color:#a7f3d0;padding:8px">JS INLINE OK</div>');
-    }
-  </script>
-
-  <!-- Carga CORRECTA del script principal (nota el <script src="..."></script>) -->
-  <script src="app.js?v=20260215a"></script>
-</body>
-</html>
-<footer class="app-footer">
-    <small>Versión con productos — sin backend (persistencia local). <span id="lblFecha"></span></small>
-  </footer>
-
-  <!-- TEST inline para verificar que el navegador ejecuta JS -->
-  <script>
-    console.log('INLINE OK');
-    const grid = document.getElementById('mesasGrid');
-    if (grid) {
-      grid.insertAdjacentHTML('beforeend', '<div style="color:#a7f3d0;padding:8px">JS INLINE OK</div>');
-    }
-  </script>
-
-  <!-- Carga CORRECTA del script principal (ahora con <script src="..."></script>) -->
-  <script src="app.js?v=20260215a"></script>
-</body>
-</html>
-<footer class="app-footer">
-    <small>Versión con productos — sin backend (persistencia local). <span id="lblFecha"></span></small>
-  </footer>
-
-  <!-- TEST inline para verificar que el navegador ejecuta JS -->
-  <script>
-    console.log('INLINE OK');
-    const grid = document.getElementById('mesasGrid');
-    if (grid) {
-      grid.insertAdjacentHTML('beforeend', '<div style="color:#a7f3d0;padding:8px">JS INLINE OK</div>');
-    }
-  </script>
-
-  <!-- CARGA CORRECTA DEL SCRIPT PRINCIPAL -->
-  <script src="app.js?v=20260215a"></script>
-</body>
-</html>
-``
