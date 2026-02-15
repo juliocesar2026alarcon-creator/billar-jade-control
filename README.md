@@ -19,3 +19,4 @@
 
 ## Deploy (Netlify / Vercel)
 Sitio estático: no requiere build. Publicar archivos en la raíz.
+Deploy automático funcionando — Julio.
