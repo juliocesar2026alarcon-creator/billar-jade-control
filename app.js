@@ -215,6 +215,20 @@ branchSelect.addEventListener('change', async () => {
   state.branch = branchSelect.value || (state.sucursalId === 2 ? 'BILLAR JADE ANEXO' : 'BILLAR JADE');
   await load();
 });
+// === Arranque seguro: forzar la llamada a load() ===
+console.log('[BOOT] registrando fallbacks de carga');
+
+window.addEventListener('DOMContentLoaded', () => {
+  console.log('[BOOT] DOMContentLoaded → load()');
+  try { load(); } catch(e){ console.error('DOMContentLoaded load() error:', e); }
+});
+
+window.addEventListener('load', () => {
+  if (!Array.isArray(state.mesas) || !state.mesas.length) {
+    console.log('[BOOT] window.load fallback → load()');
+    try { load(); } catch(e){ console.error('window.load load() error:', e); }
+  }
+});
 
 // 14) INIT — asíncrono y usando la API real
 (async function init(){
