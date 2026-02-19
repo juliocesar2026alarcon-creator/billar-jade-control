@@ -526,14 +526,21 @@ function startTicker(){
   },1000);
 }
 
-(function init(){
-  load();
+// ⬇️ init: ahora es asíncrona y usa la API real (load())
+(async function init(){
+  // lo que ya tenías
+  local();
   aplicarTema();
-  branchSelect.value=state.branch;
-  roleSelect.value=state.role;
-  adminPin.classList.toggle('hidden', roleSelect.value!=='admin');
-  renderTarifas();
-  renderMesas();
+  branchSelect.value = state.branch;
+  roleSelect.value   = state.role;
+  adminPin.classList.toggle('hidden', roleSelect.value !== 'admin');
+
+  // ⬇️ CAMBIO CLAVE:
+  // en lugar de renderTarifas()/renderMesas() locales, pedimos a la API
+  await load();      // load() trae /tarifas y /mesas y llama a initMesas() para pintar
+
   startTicker();
-  lblFecha.textContent = new Date().toLocaleDateString('es-BO', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+  lblFecha.textContent = new Date().toLocaleDateString('es-BO', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  });
 })();
