@@ -13,21 +13,24 @@ const DEFAULT_CONFIG = {
   minimoMinutos: 30,
 };
 
-// 3) Estado global (expuesto por si tu UI lo usa)
+// 3) Estado global
 const state = {
-  branch: 'BILLAR JADE', // sucursal activa
+  sucursalId: 1,              // 1 = BILLAR JADE, 2 = BILLAR JADE ANEXO
+  branch: 'BILLAR JADE',
   role: 'cajero',
   config: { ...DEFAULT_CONFIG },
   mesas: [],
   historial: [],
+  mesaActual: null,           // opcional: la mesa en foco si tu UI la usa
+  minutosFacturados: 0        // opcional: si tu UI lo calcula
 };
-window.state = state; // compatibilidad
+window.state = state; // compatibilidad global
 
-// 4) Helpers DOM (opcionales)
+// 4) Helpers DOM
 const $  = (sel) => document.querySelector(sel);
 const $$ = (sel) => Array.from(document.querySelectorAll(sel));
 
-// 5) Helper de llamadas a la API (GET)
+// 5) Helper GET a la API
 async function apiGet(path){
   const url = `${API_BASE_URL}${path}`;
   const res = await fetch(url);
@@ -38,26 +41,24 @@ async function apiGet(path){
   return res.json();
 }
 
-// 6) Render de tarifas — usa tus funciones si existen; si no, rellena etiquetas simples
+// 6) Render de tarifas — usa tu función si existe; si no, etiquetas simples
 function renderTarifasFromState(){
   if (typeof renderTarifas === 'function') {
     try { renderTarifas(); return; } catch(_) {}
   }
-  // respaldo: pinta en etiquetas si existen
-  const elTarifa = document.getElementById('lblTarifa') || $('#lbl-tarifa') || $('#tarifaValor');
+  const elTarifa = document.getElementById('lblTarifa')   || $('#lbl-tarifa')   || $('#tarifaValor');
   const elFrac   = document.getElementById('lblFraccion') || $('#lbl-fraccion') || $('#tarifaFraccion');
-  const elMin    = document.getElementById('lblMinimo') || $('#lbl-minimo') || $('#tarifaMinimo');
+  const elMin    = document.getElementById('lblMinimo')   || $('#lbl-minimo')   || $('#tarifaMinimo');
   if (elTarifa) elTarifa.textContent = `${state.config.tarifaPorHora} Bs/h`;
   if (elFrac)   elFrac.textContent   = `${state.config.fraccionMinutos} min`;
   if (elMin)    elMin.textContent    = `${state.config.minimoMinutos} min`;
 }
 
-// 7) Render de mesas — intenta usar tu initMesas(); si no existe, pinta simple
+// 7) Render de mesas — intenta usar tu initMesas(); si no existe, fallback simple
 function renderMesasFromState(){
   if (typeof initMesas === 'function') {
     try { initMesas(); return; } catch(_) {}
   }
-  // Respaldo simple: requiere un contenedor con id #mesasGrid (o similares)
   const grid = document.getElementById('mesasGrid') || $('#mesasGrid') || $('#mesas') || $('#gridMesas');
   if (!grid) return;
   grid.innerHTML = '';
@@ -73,10 +74,10 @@ function renderMesasFromState(){
   });
 }
 
-// 8) Carga inicial desde la API real
+// 8) Carga inicial (tarifas + mesas) desde la API real
 async function load(){
   try{
-    const sucursalId = 1; // BILLAR JADE; si tienes selector, puedes leerlo aquí
+    const sucursalId = Number(window.state?.sucursalId) || 1;
 
     // 8.1 Tarifas
     const t = await apiGet(`/tarifas?sucursal_id=${sucursalId}`);
@@ -90,7 +91,6 @@ async function load(){
 
     // 8.2 Mesas
     const mesas = await apiGet(`/mesas?sucursal_id=${sucursalId}`);
-    // Normaliza estructura para tu UI
     state.mesas = mesas.map(m => ({
       id: m.id,
       nombre: m.nombre || m.code || `Mesa ${m.id}`,
@@ -103,7 +103,7 @@ async function load(){
 
   }catch(e){
     console.error('Error cargando desde API:', e);
-    // Si algo falla, se queda con DEFAULT_CONFIG y sin mesas
+    // Si falla, mantén DEFAULT_CONFIG y sin mesas
   }
 }
 
@@ -112,8 +112,7 @@ let intervalId = null;
 function startTicker(){
   if (intervalId) clearInterval(intervalId);
   intervalId = setInterval(()=>{
-    const mesas = state.mesas || [];
-    mesas.forEach(m=>{
+    (state.mesas || []).forEach(m=>{
       const el = document.getElementById(`time-${m.id}`);
       if (el) el.textContent = msToHMS(getMs(m));
     });
@@ -130,26 +129,25 @@ function msToHMS(ms){
   return `${hh}:${mm}:${ss}`;
 }
 
-// 10) Utilidades de UI (neutras si no existen los nodos)
+// 10) Utilidades de UI (neutras si no existen nodos)
 function aplicarTema(){ /* opcional: tu implementación anterior */ }
-const branchSelect = document.getElementById('branchSelect') || { value: state.branch };
-const roleSelect   = document.getElementById('roleSelect')   || { value: state.role   };
+const branchSelect = document.getElementById('branchSelect') || { value: state.branch, addEventListener: ()=>{} };
+const roleSelect   = document.getElementById('roleSelect')   || { value: state.role };
 const adminPin     = document.getElementById('adminPin')     || { classList:{ toggle:()=>{} } };
 const lblFecha     = document.getElementById('lblFecha')     || { textContent: '' };
+const ticketInfo   = document.getElementById('ticketInfo')   || null; // si agregas un contenedor en HTML
 
-// 11) === CIERRE REAL: crea ticket en la base y recarga las mesas ===
+// 11) CIERRE REAL: crea ticket y recarga mesas
 async function confirmarCierreReal(opciones = {}) {
   try {
-    // 1) Lee datos desde tu UI o usa valores por defecto
-    const sucursal_id       = opciones.sucursal_id       ?? 1;                                // BILLAR JADE
-    const mesa_id           = opciones.mesa_id           ?? (window.state?.mesaActual?.id || 1);
-    const minutos_fact      = opciones.minutos_fact      ?? (window.state?.minutosFacturados || 0);
-    const importe_tiempo    = Number(opciones.importe_tiempo ?? 0);   // si ya lo calculas en tu UI, pásalo aquí
-    const consumo_total     = Number(opciones.consumo_total  ?? 0);   // idem
+    const sucursal_id       = opciones.sucursal_id       ?? (Number(window.state?.sucursalId) || 1);
+    const mesa_id           = opciones.mesa_id           ?? (Number(window.state?.mesaActual?.id) || 1);
+    const minutos_fact      = opciones.minutos_fact      ?? (Number(window.state?.minutosFacturados) || 0);
+    const importe_tiempo    = Number(opciones.importe_tiempo ?? 0);
+    const consumo_total     = Number(opciones.consumo_total  ?? 0);
     const metodo_pago       = opciones.metodo_pago       ?? 'efectivo';
     const efectivo_recibido = Number(opciones.efectivo_recibido ?? (importe_tiempo + consumo_total));
 
-    // 2) Llama al BACKEND REAL
     const res = await fetch(`${API_BASE_URL}/tickets/cerrar`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -169,8 +167,13 @@ async function confirmarCierreReal(opciones = {}) {
     }
     const data = await res.json(); // { ok:true, ticket:{ id, created_at } }
 
-    // 3) Refresca mesas desde la API para ver la mesa "libre"
+    // Recarga mesas para ver "libre"
     await load();
+
+    // Muestra el número de ticket en UI si existe ticketInfo
+    if (ticketInfo && data?.ticket?.id) {
+      ticketInfo.textContent = `Último Ticket: #${data.ticket.id}`;
+    }
 
     alert(`Cierre realizado. Ticket #${data?.ticket?.id ?? ''}`);
   } catch(e) {
@@ -179,52 +182,49 @@ async function confirmarCierreReal(opciones = {}) {
   }
 }
 
-// 12) Vincular botón "Cerrar caja" (id="btnCerrar") con el cierre real
-const btnCerrarCaja = document.getElementById('btnCerrar');
-if (btnCerrarCaja) {
-  btnCerrarCaja.addEventListener('click', () => {
-    confirmarCierreReal({
-      sucursal_id: 1,                              // BILLAR JADE
-      mesa_id: window.state?.mesaActual?.id || 1,
-      // Si ya calculas importes en la UI, puedes pasarlos:
-      // importe_tiempo: totalPorTiempo,
-      // consumo_total: totalPorConsumo,
-      // efectivo_recibido: totalRecibido,
-      metodo_pago: 'efectivo'
-    });
-  });
-}
-// === Enganche robusto del botón Cerrar caja (delegación) ===
-// Asegura type="button" (evita submit de <form> si lo hubiera)
+// 12) Enganche robusto del botón "Cerrar caja" (id="btnCerrar")
 const btnC = document.getElementById('btnCerrar');
 if (btnC && !btnC.getAttribute('type')) btnC.setAttribute('type', 'button');
-
-// Delegación global (por si el clic cae en un <span> dentro del botón)
 document.addEventListener('click', (ev) => {
   const el = ev.target;
   const btn = el?.closest ? el.closest('#btnCerrar') : null;
   if (!btn) return;
   ev.preventDefault();
   confirmarCierreReal({
-    sucursal_id: 1,
-    mesa_id: window.state?.mesaActual?.id || 1,
-    // Si más adelante ya calculas importes en la UI, los pasas aquí:
+    sucursal_id: Number(window.state?.sucursalId) || 1,
+    mesa_id: Number(window.state?.mesaActual?.id) || 1,
+    // Si luego conectas importes reales de tu UI, pásalos aquí:
     // importe_tiempo: totalPorTiempo,
     // consumo_total: totalPorConsumo,
     // efectivo_recibido: totalRecibido,
     metodo_pago: 'efectivo'
   });
 });
-// 13) INIT — asíncrono y usando la API real
+
+// 13) Cambio de sucursal (selector) → refresca API
+branchSelect.addEventListener('change', async () => {
+  // Intenta leer numérico; si no, mapea por texto
+  const v = branchSelect.value;
+  const id = Number(v);
+  if (!Number.isNaN(id) && id > 0) {
+    state.sucursalId = id;
+  } else {
+    const txt = String(v || '').toUpperCase();
+    state.sucursalId = txt.includes('ANEXO') ? 2 : 1;
+  }
+  state.branch = branchSelect.value || (state.sucursalId === 2 ? 'BILLAR JADE ANEXO' : 'BILLAR JADE');
+  await load();
+});
+
+// 14) INIT — asíncrono y usando la API real
 (async function init(){
   try{
-    // Preferencias/UI
     aplicarTema();
     branchSelect.value = state.branch;
     roleSelect.value   = state.role;
     adminPin.classList.toggle('hidden', roleSelect.value !== 'admin');
 
-    // 🔑 CAMBIO CLAVE: pedir a la API y pintar
+    // 🔑 Cargar desde la API y pintar
     await load();
 
     // Reloj y fecha
