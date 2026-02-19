@@ -21,10 +21,10 @@ const state = {
   mesas: [],
   historial: [],
 };
-window.state = state; // para compatibilidad con funciones previas
+window.state = state; // compatibilidad
 
 // 4) Helpers DOM (opcionales)
-const $ = (sel) => document.querySelector(sel);
+const $  = (sel) => document.querySelector(sel);
 const $$ = (sel) => Array.from(document.querySelectorAll(sel));
 
 // 5) Helper de llamadas a la API (GET)
@@ -41,13 +41,12 @@ async function apiGet(path){
 // 6) Render de tarifas — usa tus funciones si existen; si no, rellena etiquetas simples
 function renderTarifasFromState(){
   if (typeof renderTarifas === 'function') {
-    // tu función original (si existe) pintará desde state.config
     try { renderTarifas(); return; } catch(_) {}
   }
   // respaldo: pinta en etiquetas si existen
-  const elTarifa   = $('#lbl-tarifa, #tarifaValor, #lblTarifa');
-  const elFrac     = $('#lbl-fraccion, #tarifaFraccion, #lblFraccion');
-  const elMin      = $('#lbl-minimo, #tarifaMinimo, #lblMinimo');
+  const elTarifa = document.getElementById('lblTarifa') || $('#lbl-tarifa') || $('#tarifaValor');
+  const elFrac   = document.getElementById('lblFraccion') || $('#lbl-fraccion') || $('#tarifaFraccion');
+  const elMin    = document.getElementById('lblMinimo') || $('#lbl-minimo') || $('#tarifaMinimo');
   if (elTarifa) elTarifa.textContent = `${state.config.tarifaPorHora} Bs/h`;
   if (elFrac)   elFrac.textContent   = `${state.config.fraccionMinutos} min`;
   if (elMin)    elMin.textContent    = `${state.config.minimoMinutos} min`;
@@ -58,17 +57,17 @@ function renderMesasFromState(){
   if (typeof initMesas === 'function') {
     try { initMesas(); return; } catch(_) {}
   }
-  // Respaldo simple: requiere un contenedor con id #mesasGrid
-  const grid = $('#mesasGrid') || $('#mesas') || $('#gridMesas');
+  // Respaldo simple: requiere un contenedor con id #mesasGrid (o similares)
+  const grid = document.getElementById('mesasGrid') || $('#mesasGrid') || $('#mesas') || $('#gridMesas');
   if (!grid) return;
   grid.innerHTML = '';
   state.mesas.forEach(m => {
     const card = document.createElement('div');
-    card.className = 'mesa';
+    card.className = `mesa ${m.estado || 'libre'}`;
     card.innerHTML = `
       <div class="mesa-title">${m.nombre || `Mesa ${m.id}`}</div>
       <div class="mesa-time" id="time-${m.id}">00:00:00</div>
-      <div class="mesa-estado ${m.estado || 'libre'}">${m.estado || 'libre'}</div>
+      <div class="mesa-estado">${m.estado || 'libre'}</div>
     `;
     grid.appendChild(card);
   });
@@ -83,15 +82,15 @@ async function load(){
     const t = await apiGet(`/tarifas?sucursal_id=${sucursalId}`);
     state.config = {
       ...DEFAULT_CONFIG,
-      tarifaPorHora: Number(t.price_per_hour_bs ?? DEFAULT_CONFIG.tarifaPorHora),
-      fraccionMinutos: Number(t.fraction_minutes ?? DEFAULT_CONFIG.fraccionMinutos),
-      minimoMinutos: Number(t.min_minutes ?? DEFAULT_CONFIG.minimoMinutos),
+      tarifaPorHora:   Number(t.price_per_hour_bs ?? DEFAULT_CONFIG.tarifaPorHora),
+      fraccionMinutos: Number(t.fraction_minutes  ?? DEFAULT_CONFIG.fraccionMinutos),
+      minimoMinutos:   Number(t.min_minutes       ?? DEFAULT_CONFIG.minimoMinutos),
     };
     renderTarifasFromState();
 
     // 8.2 Mesas
     const mesas = await apiGet(`/mesas?sucursal_id=${sucursalId}`);
-    // Normaliza estructura para que tu UI siga funcionando
+    // Normaliza estructura para tu UI
     state.mesas = mesas.map(m => ({
       id: m.id,
       nombre: m.nombre || m.code || `Mesa ${m.id}`,
@@ -108,7 +107,7 @@ async function load(){
   }
 }
 
-// 9) Reloj (usa el mismo patrón que ya tenías: time-${id})
+// 9) Reloj (usa el patrón time-${id})
 let intervalId = null;
 function startTicker(){
   if (intervalId) clearInterval(intervalId);
@@ -120,9 +119,7 @@ function startTicker(){
     });
   }, 1000);
 }
-// -> utilidades de tiempo (ajusta a tu lógica real si ya las tienes)
 function getMs(m){
-  // ejemplo: si no manejas 'inicio', deja en 0
   return m.inicio ? (Date.now() - new Date(m.inicio).getTime()) : 0;
 }
 function msToHMS(ms){
@@ -133,15 +130,14 @@ function msToHMS(ms){
   return `${hh}:${mm}:${ss}`;
 }
 
-// 10) Utilidades opcionales que tu código invoca (no hacen nada si no existen los nodos)
-function aplicarTema(){ /* si ya tenías una, esta es neutra */ }
-const branchSelect = $('#branchSelect') || { value: state.branch };
-const roleSelect   = $('#roleSelect')   || { value: state.role   };
-const adminPin     = $('#adminPin')     || { classList:{ toggle:()=>{} } };
-const lblFecha     = $('#lblFecha')     || { textContent: '' };
+// 10) Utilidades de UI (neutras si no existen los nodos)
+function aplicarTema(){ /* opcional: tu implementación anterior */ }
+const branchSelect = document.getElementById('branchSelect') || { value: state.branch };
+const roleSelect   = document.getElementById('roleSelect')   || { value: state.role   };
+const adminPin     = document.getElementById('adminPin')     || { classList:{ toggle:()=>{} } };
+const lblFecha     = document.getElementById('lblFecha')     || { textContent: '' };
 
-// 11) INIT — asíncrono y usando la API real
-// === CIERRE REAL: crea ticket en la base y recarga las mesas ===
+// 11) === CIERRE REAL: crea ticket en la base y recarga las mesas ===
 async function confirmarCierreReal(opciones = {}) {
   try {
     // 1) Lee datos desde tu UI o usa valores por defecto
@@ -182,15 +178,15 @@ async function confirmarCierreReal(opciones = {}) {
     alert('No se pudo cerrar el ticket: ' + e.message);
   }
 }
-// Vincular botón "Cerrar caja" (id="btnCerrar") con el cierre real
+
+// 12) Vincular botón "Cerrar caja" (id="btnCerrar") con el cierre real
 const btnCerrarCaja = document.getElementById('btnCerrar');
 if (btnCerrarCaja) {
   btnCerrarCaja.addEventListener('click', () => {
-    // Llamada básica con valores por defecto
     confirmarCierreReal({
       sucursal_id: 1,                              // BILLAR JADE
-      mesa_id: window.state?.mesaActual?.id || 1,  // si manejás mesa seleccionada, reemplazá aquí
-      // Si ya calculás importes en la UI, podés pasarlos:
+      mesa_id: window.state?.mesaActual?.id || 1,
+      // Si ya calculas importes en la UI, puedes pasarlos:
       // importe_tiempo: totalPorTiempo,
       // consumo_total: totalPorConsumo,
       // efectivo_recibido: totalRecibido,
@@ -198,6 +194,8 @@ if (btnCerrarCaja) {
     });
   });
 }
+
+// 13) INIT — asíncrono y usando la API real
 (async function init(){
   try{
     // Preferencias/UI
