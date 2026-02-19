@@ -141,6 +141,47 @@ const adminPin     = $('#adminPin')     || { classList:{ toggle:()=>{} } };
 const lblFecha     = $('#lblFecha')     || { textContent: '' };
 
 // 11) INIT — asíncrono y usando la API real
+// === CIERRE REAL: crea ticket en la base y recarga las mesas ===
+async function confirmarCierreReal(opciones = {}) {
+  try {
+    // 1) Lee datos desde tu UI o usa valores por defecto
+    const sucursal_id       = opciones.sucursal_id       ?? 1;                                // BILLAR JADE
+    const mesa_id           = opciones.mesa_id           ?? (window.state?.mesaActual?.id || 1);
+    const minutos_fact      = opciones.minutos_fact      ?? (window.state?.minutosFacturados || 0);
+    const importe_tiempo    = Number(opciones.importe_tiempo ?? 0);   // si ya lo calculas en tu UI, pásalo aquí
+    const consumo_total     = Number(opciones.consumo_total  ?? 0);   // idem
+    const metodo_pago       = opciones.metodo_pago       ?? 'efectivo';
+    const efectivo_recibido = Number(opciones.efectivo_recibido ?? (importe_tiempo + consumo_total));
+
+    // 2) Llama al BACKEND REAL
+    const res = await fetch(`${API_BASE_URL}/tickets/cerrar`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sucursal_id,
+        mesa_id,
+        minutos_fact,
+        importe_tiempo,
+        consumo_total,
+        metodo_pago,
+        efectivo_recibido
+      })
+    });
+    if (!res.ok) {
+      const txt = await res.text().catch(()=> '');
+      throw new Error(`Error al cerrar ticket: ${res.status} ${txt}`);
+    }
+    const data = await res.json(); // { ok:true, ticket:{ id, created_at } }
+
+    // 3) Refresca mesas desde la API para ver la mesa "libre"
+    await load();
+
+    alert(`Cierre realizado. Ticket #${data?.ticket?.id ?? ''}`);
+  } catch(e) {
+    console.error(e);
+    alert('No se pudo cerrar el ticket: ' + e.message);
+  }
+}
 (async function init(){
   try{
     // Preferencias/UI
