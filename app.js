@@ -182,6 +182,22 @@ async function confirmarCierreReal(opciones = {}) {
     alert('No se pudo cerrar el ticket: ' + e.message);
   }
 }
+// Vincular botón "Cerrar caja" (id="btnCerrar") con el cierre real
+const btnCerrarCaja = document.getElementById('btnCerrar');
+if (btnCerrarCaja) {
+  btnCerrarCaja.addEventListener('click', () => {
+    // Llamada básica con valores por defecto
+    confirmarCierreReal({
+      sucursal_id: 1,                              // BILLAR JADE
+      mesa_id: window.state?.mesaActual?.id || 1,  // si manejás mesa seleccionada, reemplazá aquí
+      // Si ya calculás importes en la UI, podés pasarlos:
+      // importe_tiempo: totalPorTiempo,
+      // consumo_total: totalPorConsumo,
+      // efectivo_recibido: totalRecibido,
+      metodo_pago: 'efectivo'
+    });
+  });
+}
 (async function init(){
   try{
     // Preferencias/UI
