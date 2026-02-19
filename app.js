@@ -194,7 +194,27 @@ if (btnCerrarCaja) {
     });
   });
 }
+// === Enganche robusto del botón Cerrar caja (delegación) ===
+// Asegura type="button" (evita submit de <form> si lo hubiera)
+const btnC = document.getElementById('btnCerrar');
+if (btnC && !btnC.getAttribute('type')) btnC.setAttribute('type', 'button');
 
+// Delegación global (por si el clic cae en un <span> dentro del botón)
+document.addEventListener('click', (ev) => {
+  const el = ev.target;
+  const btn = el?.closest ? el.closest('#btnCerrar') : null;
+  if (!btn) return;
+  ev.preventDefault();
+  confirmarCierreReal({
+    sucursal_id: 1,
+    mesa_id: window.state?.mesaActual?.id || 1,
+    // Si más adelante ya calculas importes en la UI, los pasas aquí:
+    // importe_tiempo: totalPorTiempo,
+    // consumo_total: totalPorConsumo,
+    // efectivo_recibido: totalRecibido,
+    metodo_pago: 'efectivo'
+  });
+});
 // 13) INIT — asíncrono y usando la API real
 (async function init(){
   try{
