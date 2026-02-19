@@ -1,3 +1,5 @@
+// URL de tu backend real en Render
+const API_BASE_URL = 'https://billar-backend-1.onrender.com';
 // === Estado y configuración ===
 const DEFAULT_CONFIG = {
   tarifaPorHora: 15.0,
@@ -38,21 +40,54 @@ function initMesas(){
   });
 }
 
-function load(){
+// Helper GET sencillo a tu API (si ya lo pegaste más arriba, no lo repitas)
+async function apiGet(path){
+  const res = await fetch(`${API_BASE_URL}${path}`);
+  if(!res.ok) throw new Error(`Error API ${path}: ${res.status}`);
+  return res.json();
+}
+
+// Carga inicial leyendo de la API real
+async function load(){
   try{
-    const raw = localStorage.getItem(LS_KEY);
-    if(raw){
-      const parsed = JSON.parse(raw);
-      state = {
-        branch: parsed.branch ?? BRANCHES[0],
-        role: parsed.role ?? 'cajero',
-        config: { ...DEFAULT_CONFIG, ...(parsed.config||{}) },
-        mesas: parsed.mesas || {},
-        historial: parsed.historial || {}
-      }
-    }
-  }catch(e){console.warn('No storage', e)}
-  initMesas();
+    // Sucursal 1 (BILLAR JADE). Más adelante podemos leerlo del selector.
+    const sucursalId = 1;
+
+    // 1) Tarifas desde la API
+    const t = await apiGet(`/tarifas?sucursal_id=${sucursalId}`);
+    state.config = {
+      ...DEFAULT_CONFIG,
+      tarifaPorHora: Number(t.price_per_hour_bs || 15),
+      fraccionMinutos: Number(t.fraction_minutes || 5),
+      minimoMinutos: Number(t.min_minutes || 30),
+    };
+
+    // 2) Mesas desde la API
+    const mesas = await apiGet(`/mesas?sucursal_id=${sucursalId}`);
+    // Normalizar al formato que ya usa tu UI:
+    state.mesas = mesas.map(m => ({
+      id: m.id,
+      nombre: m.nombre || m.code || `Mesa ${m.id}`,
+      estado: (m.estado || 'libre'),
+      inicio: null,
+      transcurrido: 0,
+      consumo: []
+    }));
+
+    // 3) Datos base para tu pantalla
+    state.branch = 'BILLAR JADE';
+    state.role = state.role || 'cajero';
+    state.historial = state.historial || [];
+
+    // 4) Pintar mesas
+    initMesas();
+
+  }catch(e){
+    console.error('Error cargando desde API:', e);
+    // Si algo falla, al menos inicializá la UI
+    initMesas();
+  }
+}
 }
 function save(){
   try{localStorage.setItem(LS_KEY, JSON.stringify(state));}catch(e){}
